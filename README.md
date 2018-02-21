@@ -10,10 +10,17 @@ If you want me to do a small tutorial on how you guys can use git and github to 
 - Include links and tutorial information for:
     - Shopping lists and resources for purchasing hardware, cabling, enclosures, custom boards and manufacturing equipment.
     - Installing software and programming an arduino capable board.
-    - Pictures and explinations for assembling hardware.
+    - Pictures and explanations for assembling hardware.
     - Examples, test data, an rules of thumbs for configuring myo sensor.
     - Method for contributing (either via git/github or other)?
     - Alternative more advanced implementations?
+
+### Wishlist: Features and behaviors we might want in a device?
+- Latching behavior: One activation to enable, stay enabled until second activation, then disable.
+- More easily accessible, or less finicky, potentiometer gain adjustment?
+- Battery operation?
+- Cord free operation
+- Combination hookah and coffemaker?
 
 ## Resources and Links
 - [Adafruit Myoware tutorial](https://learn.adafruit.com/getting-started-with-myoware-muscle-sensor)
