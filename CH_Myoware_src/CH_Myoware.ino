@@ -32,11 +32,9 @@ SOFTWARE.
 /** This analog pin Ax is connected to the SIG output from the Myoware. **/
 #define MYO_READ_PIN A0
 
-/** This is the number of millisecond between each myo measurement 
- *  You can calculate the samples per second by:
- *      Samples/sec = 1000 / LOOP_DELAY_MS
+/** This is the number number of samples read from the myo output per second.
  * **/
-#define LOOP_DELAY_MS 10 
+#define MYO_SAMPLES_SEC 50 
 
 /** The threshold value for activating a positive muscle activation
  *  Possible values are 0 - 1023
@@ -59,7 +57,8 @@ bool led_toggle = 0;
 
 /**NO TOUCHY! Below variables are calculated to allow for control flow and to simplify some loop() programming **/
 unsigned int debounce_counter = 0;
-unsigned int debounce_incycles = debounce_ms/LOOP_DELAY_MS;
+unsigned int debounce_incycles = debounce_ms/MYO_SAMPLES_SEC;
+unsigned int delay_counter_ms = 1000/MYO_SAMPLES_SEC;
 
 
 //////// Arduino Library Functions ///////////
@@ -79,14 +78,14 @@ void setup() {
  * 
  * **/
 void loop() {
-    delay(LOOP_DELAY_MS); // Make sure to only read 1000/LOOP_DELAY_MS times a second
+    delay(delay_counter_ms); // Make sure to only read MYO_SAMPLES_SEC times a second
     digitalWrite(13, ~led_toggle);
  
     int enable_keyboard = !digitalRead(ENABLE_PIN);  //If the enable pin is connected to ground, then print keyboard functions.
     int myo_value = analogRead(MYO_READ_PIN); //Read the value of the myo output.  Note: value is 0-1024.
 
     //NOTE: This will work with the arduino grapher tool.
-    Serial.println(myo_value); //Test print out the value read by the myo, comment out of release code but useful for debugging.
+    Serial.print(myo_value); //Test print out the value read by the myo, comment out of release code but useful for debugging.
 
     //If the value measured is greater than the threshold, then execute the following code.
     if(myo_value > myo_threshold){
@@ -99,13 +98,15 @@ void loop() {
                 debounce_counter = 0;
         }
             //Code here will execute when the threshold is measured, regardless if the keyboard enable is active.
-            Serial.print(F("ACT!"));  //Test print on activation, comment out of release code.
+            Serial.print(F("\t\t\tACT!"));  //Test print on activation, comment out of release code.
     }
     
     //This is a once per loop counter which increments debounce_counter, marking time before the next event can happen.
     if (enable_keyboard){ 
         debounce_counter++;
     }
+
+    Serial.print('\r'); //New line
     
 }//END OF loop()
  
