@@ -1,26 +1,25 @@
-/**
-MIT License
+    /**
+  
+    CH_Myoware: A simple program which reads and analog value from the output
+    of a Myoware EMG sensor; compares it to a threshold value; and then initiates
+    a keypress based on the users desire.
 
-Copyright (c) 2018 Patrick W.
+    Copyright (C) 2018 Patrick Wagner
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-**/
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+    **/
 
 #include <Mouse.h>
 #include <Keyboard.h>
@@ -45,7 +44,12 @@ SOFTWARE.
  *  **/
 unsigned int myo_threshold = 300;  
 
-/** The character to send to the computer when an activation occurs. **/
+/** The character or mouse click to send to the computer when an activation occurs. 
+ *  
+ * Note: You can disable either the character or the left click by changing respective var to 'false'
+ *  * **/
+bool enable_left_click = true;  // 'true' will send a left mouse click on activation, 'false' will not.
+bool enable_keyboard_char = true;  // 'true' will send the char below on activation, 'false' will not.
 char positive_test_letter = 'x';  //Printed character should be between single quotes, Ex: Space = ' ' ; X = 'X' etc. 
 
 /**Number of milliseconds to delay before allowing another positive reading, known as DEBOUNCE **/
@@ -81,7 +85,7 @@ void loop() {
     delay(delay_counter_ms); // Make sure to only read MYO_SAMPLES_SEC times a second
     digitalWrite(13, ~led_toggle);
  
-    int enable_keyboard = !digitalRead(ENABLE_PIN);  //If the enable pin is connected to ground, then print keyboard functions.
+    int enable_keyboard_mouse = !digitalRead(ENABLE_PIN);  //If the enable pin is connected to ground, then print keyboard functions.
     int myo_value = analogRead(MYO_READ_PIN); //Read the value of the myo output.  Note: value is 0-1024.
 
     //NOTE: This will work with the arduino grapher tool.
@@ -92,17 +96,25 @@ void loop() {
 
         //If the keyboard enable pin is low, this will print the desired key to the screen
         //    Note: Only occurs once per debounce_ms milliseconds.
-        if(enable_keyboard && (debounce_counter >= debounce_incycles)){
-                Keyboard.write(positive_test_letter);
-                Keyboard.write(KEY_RETURN);  //TEST Return to increase readability.
-                debounce_counter = 0;
+        if(enable_keyboard_mouse && (debounce_counter >= debounce_incycles)){
+                
+                if (enable_keyboard_char == true){  //If the keyboard character is not defined,
+                    Keyboard.write(positive_test_letter);
+                    Keyboard.write(KEY_RETURN);  //TEST Return to increase readability.
+                }
+
+                if (enable_left_click == true){
+                    Mouse.click(MOUSE_LEFT);
+                }
+
+                debounce_counter = 0;  //Reset debounce counter.
         }
             //Code here will execute when the threshold is measured, regardless if the keyboard enable is active.
             Serial.print(F("\t\t\tACT!"));  //Test print on activation, comment out of release code.
     }
     
     //This is a once per loop counter which increments debounce_counter, marking time before the next event can happen.
-    if (enable_keyboard){ 
+    if (enable_keyboard_mouse){ 
         debounce_counter++;
     }
 
