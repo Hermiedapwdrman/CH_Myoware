@@ -1,5 +1,4 @@
     /**
-  
     CH_Myoware: A simple program which reads and analog value from the output
     of a Myoware EMG sensor; compares it to a threshold value; and then initiates
     a keypress based on the users desire.
