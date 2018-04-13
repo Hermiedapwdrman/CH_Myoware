@@ -24,9 +24,10 @@
 #include <Mouse.h>
 #include <Keyboard.h>
 
-/** This pin when connected to GND will enable the keyboard output
- * WARNING: This will print characters to your computer when active **/
-#define ENABLE_PIN 12
+/** These pins when connected to GND will enable their respective output
+ * WARNING: This will control your computer(click and print chars) to your computer when active **/
+#define KEYBOARD_ENABLE_PIN 12
+#define MOUSE_ENABLE_PIN 11
 
 /** This analog pin Ax is connected to the SIG output from the Myoware. **/
 #define MYO_READ_PIN A0
@@ -48,8 +49,6 @@ unsigned int myo_threshold = 300;
  *  
  * Note: You can disable either the character or the left click by changing respective var to 'false'
  *  * **/
-bool enable_left_click = true;  // 'true' will send a left mouse click on activation, 'false' will not.
-bool enable_keyboard_char = true;  // 'true' will send the char below on activation, 'false' will not.
 char positive_test_letter = 'x';  //Printed character should be between single quotes, Ex: Space = ' ' ; X = 'X' etc. 
 
 /**Number of milliseconds to delay before allowing another positive reading, known as DEBOUNCE **/
@@ -69,7 +68,8 @@ unsigned int delay_counter_ms = 1000/MYO_SAMPLES_SEC;
 
 /** The setup function runs once when the leonardo leaves the bootloader ~7 seconds after turning on the device **/
 void setup() {
-  pinMode(ENABLE_PIN,INPUT_PULLUP);     //Configure pin to enable keyboard output
+  pinMode(KEYBOARD_ENABLE_PIN,INPUT_PULLUP);     //Configure pin to enable keyboard output
+  pinMode(MOUSE_ENABLE_PIN,INPUT_PULLUP);     //Configure pin to enable keyboard output
   pinMode(LED_BUILTIN,OUTPUT);          //Configure LED output pin.
   Keyboard.begin();                     //Initialize the keyboard class.
   Mouse.begin();                        //Initialize the mouse class.
@@ -83,10 +83,11 @@ void setup() {
  * **/
 void loop() {
     delay(delay_counter_ms); // Make sure to only read MYO_SAMPLES_SEC times a second
-    digitalWrite(13, ~led_toggle);
+    digitalWrite(LED_BUILTIN, LOW);
  
-    int enable_keyboard_mouse = !digitalRead(ENABLE_PIN);  //If the enable pin is connected to ground, then print keyboard functions.
-    int myo_value = analogRead(MYO_READ_PIN); //Read the value of the myo output.  Note: value is 0-1024.
+    int enable_keyboard = !digitalRead(KEYBOARD_ENABLE_PIN);  //If the enable pin is connected to ground, then print keyboard when active.
+    int enable_mouse = !digitalRead(MOUSE_ENABLE_PIN);  //If the enable pin is connected to ground, then print left click when active.
+    unsigned int myo_value = analogRead(MYO_READ_PIN); //Read the value of the myo output.  Note: value is 0-1024.
 
     //NOTE: This will work with the arduino grapher tool.
     Serial.print(myo_value); //Test print out the value read by the myo, comment out of release code but useful for debugging.
@@ -96,25 +97,26 @@ void loop() {
 
         //If the keyboard enable pin is low, this will print the desired key to the screen
         //    Note: Only occurs once per debounce_ms milliseconds.
-        if(enable_keyboard_mouse && (debounce_counter >= debounce_incycles)){
+        if((enable_keyboard || enable_mouse)  && (debounce_counter >= debounce_incycles)){
                 
-                if (enable_keyboard_char == true){  //If the keyboard character is not defined,
+                if (enable_keyboard == true){  //If keyboard pin is enabled, toggled
                     Keyboard.write(positive_test_letter);
                     Keyboard.write(KEY_RETURN);  //TEST Return to increase readability.
                 }
 
-                if (enable_left_click == true){
-                    Mouse.click(MOUSE_LEFT);
+                if (enable_mouse == true){ //If mouse pin is enable, toggled.
+                    Mouse.click(MOUSE_LEFT);  //Click the left mouse button.
                 }
 
                 debounce_counter = 0;  //Reset debounce counter.
         }
             //Code here will execute when the threshold is measured, regardless if the keyboard enable is active.
             Serial.print(F("\t\t\tACT!"));  //Test print on activation, comment out of release code.
+            digitalWrite(LED_BUILTIN, HIGH);  //Flash LED if myto theshold.
     }
     
     //This is a once per loop counter which increments debounce_counter, marking time before the next event can happen.
-    if (enable_keyboard_mouse){ 
+    if (enable_keyboard || enable_mouse){ 
         debounce_counter++;
     }
 
